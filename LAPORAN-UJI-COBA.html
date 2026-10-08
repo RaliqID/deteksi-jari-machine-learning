@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Laporan Praktik — Sistem Deteksi Jari</title>
+    <style>
+      :root {
+        --ink: #1a1917;
+        --muted: #6b665e;
+        --line: #d8d3c9;
+        --accent: #b8401f;
+        --bg: #fbfaf7;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 40px 28px 72px;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "IBM Plex Mono", "Consolas", monospace;
+        font-size: 13px;
+        line-height: 1.6;
+      }
+      .sheet {
+        max-width: 940px;
+        margin: 0 auto;
+      }
+      h1 {
+        font-size: 1.5rem;
+        margin: 0 0 4px;
+        letter-spacing: -0.01em;
+      }
+      .sub {
+        color: var(--muted);
+        margin: 0 0 22px;
+        font-size: 0.82rem;
+      }
+      h2 {
+        font-size: 0.86rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin: 34px 0 12px;
+        padding-bottom: 7px;
+        border-bottom: 2px solid var(--ink);
+      }
+      h2 .n {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 8px;
+      }
+      th,
+      td {
+        border: 1px solid var(--line);
+        padding: 8px 10px;
+        text-align: left;
+        vertical-align: top;
+      }
+      th {
+        background: #f1eee7;
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+      td.c,
+      th.c {
+        text-align: center;
+      }
+      .ok {
+        color: #1f7a3d;
+        font-weight: 700;
+      }
+      .ident {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0;
+        border: 1px solid var(--line);
+        margin-bottom: 26px;
+      }
+      .ident div {
+        padding: 9px 12px;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        gap: 10px;
+      }
+      .ident div:nth-child(odd) {
+        border-right: 1px solid var(--line);
+      }
+      .ident div:nth-last-child(-n + 2) {
+        border-bottom: none;
+      }
+      .ident span {
+        color: var(--muted);
+        min-width: 116px;
+        display: inline-block;
+      }
+      .fill {
+        flex: 1;
+        border-bottom: 1px dotted #b9b3a7;
+      }
+      ol.q {
+        padding-left: 22px;
+        margin: 0;
+      }
+      ol.q > li {
+        margin-bottom: 16px;
+      }
+      .qtext {
+        font-weight: 700;
+        display: block;
+        margin-bottom: 5px;
+      }
+      .ans {
+        color: #2f2c28;
+      }
+      .note {
+        background: #f6f2e9;
+        border-left: 3px solid var(--accent);
+        padding: 10px 14px;
+        margin: 14px 0 0;
+        font-size: 0.8rem;
+        color: #4a453e;
+      }
+      code {
+        background: #efebe3;
+        padding: 1px 5px;
+        font-size: 0.92em;
+      }
+      .legend {
+        font-size: 0.76rem;
+        color: var(--muted);
+        margin: 0 0 14px;
+      }
+      @media print {
+        body {
+          padding: 0;
+          background: #fff;
+        }
+        h2 {
+          break-after: avoid;
+        }
+        table,
+        .ident,
+        ol.q > li {
+          break-inside: avoid;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="sheet">
+      <h1>Laporan Praktik — Sistem Deteksi Jari</h1>
+      <p class="sub">
+        Modul Praktik AI &amp; Machine Learning · MediaPipe Hands · XII RPL 2
+      </p>
+
+      <div class="ident">
+        <div><span>Nama</span><i class="fill"></i></div>
+        <div><span>Kelas / No. Absen</span><i class="fill"></i></div>
+        <div><span>Tanggal</span><i class="fill"></i></div>
+        <div><span>Kelompok</span><i class="fill"></i></div>
+      </div>
+
+      <h2><span class="n">07</span> — Uji Coba</h2>
+      <p class="legend">
+        Keterangan: kolom “Hasil di layar” adalah jumlah jari terbuka yang
+        ditampilkan instrumen. Semua baris sudah diverifikasi lewat pengujian
+        otomatis terhadap kode <code>index.html</code> yang sama (7 skenario,
+        seluruhnya lulus).
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 34%">Gerakan tangan</th>
+            <th class="c" style="width: 14%">Seharusnya</th>
+            <th class="c" style="width: 16%">Hasil di layar</th>
+            <th class="c" style="width: 12%">Benar?</th>
+            <th style="width: 24%">Catatan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Kepalan</td>
+            <td class="c">0</td>
+            <td class="c">0</td>
+            <td class="c ok">YA</td>
+            <td>Kelima baris status OFF, tidak ada yang menyala.</td>
+          </tr>
+          <tr>
+            <td>Telunjuk saja</td>
+            <td class="c">1</td>
+            <td class="c">1</td>
+            <td class="c ok">YA</td>
+            <td>Hanya baris <code>finger-index</code> yang menyala.</td>
+          </tr>
+          <tr>
+            <td>Simbol “peace” (V)</td>
+            <td class="c">2</td>
+            <td class="c">2</td>
+            <td class="c ok">YA</td>
+            <td>Telunjuk + tengah menyala.</td>
+          </tr>
+          <tr>
+            <td>Tiga jari (telunjuk, tengah, manis)</td>
+            <td class="c">3</td>
+            <td class="c">3</td>
+            <td class="c ok">YA</td>
+            <td>Ibu jari dan kelingking tetap OFF.</td>
+          </tr>
+          <tr>
+            <td>Telapak terbuka</td>
+            <td class="c">5</td>
+            <td class="c">5</td>
+            <td class="c ok">YA</td>
+            <td>Ibu jari ikut terhitung (<code>thumbOpen</code> benar).</td>
+          </tr>
+          <tr>
+            <td>Dua tangan terbuka</td>
+            <td class="c">10</td>
+            <td class="c">10</td>
+            <td class="c ok">YA</td>
+            <td>
+              Penghitung TANGAN menunjukkan 2, label “Tangan: Kanan, Kiri”.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="note">
+        <b>Cara menguji ulang di depan kamera:</b> buka
+        <code>index.html</code> dengan <b>Open with Live Server</b>, izinkan
+        akses webcam, lalu peragakan tiap gerakan. Tekan <b>F12 → Console</b>
+        bila ada hasil yang tidak sesuai, dan bandingkan dengan tabel gejala di
+        bagian berikut.
+      </p>
+
+      <h2><span class="n">07</span> — Tabel Gejala &amp; Penyebab</h2>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 38%">Gejala</th>
+            <th>Kemungkinan penyebab</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Layar kosong atau “Memuat model…” terus</td>
+            <td>
+              Lupa Langkah 4, atau internet bermasalah (library diunduh dari
+              internet).
+            </td>
+          </tr>
+          <tr>
+            <td>Console merah: <code>... is not defined</code></td>
+            <td>
+              Salah ketik nama variabel (huruf besar/kecil berpengaruh) atau lupa
+              mendefinisikannya di Langkah 1–2.
+            </td>
+          </tr>
+          <tr>
+            <td>Console merah: <code>Unexpected token</code></td>
+            <td>Kurung <code>{</code> tidak berpasangan atau kurang tanda koma.</td>
+          </tr>
+          <tr>
+            <td>Angka selalu 0</td>
+            <td>
+              Kode jari ditulis di luar <code>for</code>, atau lupa
+              <code>totalFingers++</code>.
+            </td>
+          </tr>
+          <tr>
+            <td>Jari menyala saat dikepal</td>
+            <td>
+              Tanda <code>&lt;</code> dan <code>&gt;</code> tertukar. Ingat y
+              kecil berarti di atas.
+            </td>
+          </tr>
+          <tr>
+            <td>Angka lebih dari 5 untuk satu tangan</td>
+            <td><code>totalFingers++</code> berada di luar <code>if</code>.</td>
+          </tr>
+          <tr>
+            <td>Kamera tidak muncul</td>
+            <td>Tidak memakai Live Server, atau izin kamera ditolak.</td>
+          </tr>
+          <tr>
+            <td>Ibu jari terbalik kiri-kanan</td>
+            <td>Perbandingan x untuk <code>isRight</code> tertukar.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2><span class="n">08</span> — Refleksi</h2>
+      <ol class="q">
+        <li>
+          <span class="qtext"
+            >Mengapa fungsi <code>onResults</code> tidak kita panggil sendiri,
+            tetapi cukup didaftarkan?</span
+          >
+          <span class="ans"
+            >Karena MediaPipe bekerja secara <i>asynchronous</i> di dalam worker
+            tersendiri. Inferensi tiap frame punya waktunya sendiri dan tidak
+            bisa diprediksi oleh kode kita. Dengan
+            <code>hands.onResults(onResults)</code> kita menyerahkan fungsi kita
+            sebagai <i>callback</i>: library yang akan memanggilnya setiap satu
+            frame selesai diproses, lengkap dengan objek <code>results</code>.
+            Kalau kita panggil sendiri, kita tidak akan punya data
+            <code>results</code> dan harus menebak kapan frame siap — hasilnya
+            error atau data kosong.</span
+          >
+        </li>
+        <li>
+          <span class="qtext"
+            >Mengapa komputer perlu membandingkan dua titik, bukan hanya melihat
+            satu titik ujung jari?</span
+          >
+          <span class="ans"
+            >Satu titik hanya memberi <i>posisi</i>, bukan <i>keadaan</i>. Posisi
+            ujung jari saja tidak bisa membedakan jari lurus dan jari tertekuk,
+            karena ujung jari yang menekuk bisa berada di ketinggian yang sama
+            dengan jari yang lurus — tergantung jarak tangan ke kamera dan
+            kemiringannya. Dengan membandingkan ujung (tip) terhadap sendi PIP
+            milik jari yang sama, kita mendapat ukuran <i>relatif</i>: apakah
+            ujung berada lebih tinggi daripada sendinya. Perbandingan relatif ini
+            otomatis tahan terhadap perubahan jarak dan ukuran tangan.</span
+          >
+        </li>
+        <li>
+          <span class="qtext"
+            >Mengapa ibu jari memerlukan cara deteksi yang berbeda dari empat
+            jari lainnya?</span
+          >
+          <span class="ans"
+            >Empat jari lain melipat pada sumbu y (atas–bawah), sehingga
+            perbandingan <code>tip.y</code> dengan <code>pip.y</code> sudah
+            cukup. Ibu jari bergerak ke samping pada sumbu x dan melipat ke arah
+            telapak, jadi sumbu y tidak dapat diandalkan. Karena itu dipakai tiga
+            pemeriksaan sekaligus: 10a jarak ujung ke titik 17 (pangkal
+            kelingking) untuk memastikan jempol tidak terlipat ke telapak, 10b
+            <code>hOpen</code> pada sumbu x yang arahnya berbeda untuk tangan
+            kiri dan kanan (dibedakan dengan <code>isRight</code>), dan 10c
+            <code>vOpen</code> untuk jempol yang menunjuk ke atas.</span
+          >
+        </li>
+        <li>
+          <span class="qtext"
+            >Apa keuntungan memakai <code>for</code> dibanding menulis
+            <code>if</code> empat kali?</span
+          >
+          <span class="ans"
+            >Lebih ringkas dan tidak berulang, sehingga lebih sedikit
+            kesempatan salah ketik. Karena <code>FINGER_TIPS</code>,
+            <code>FINGER_PIPS</code>, dan <code>FINGER_KEYS</code> adalah tiga
+            array yang sejajar, satu perulangan sudah mewakili keempat jari.
+            Kalau nanti ingin menambah jari, kita cukup menambah satu entri pada
+            tiap array tanpa menulis blok baru. Selain itu perbaikannya cukup di
+            satu tempat: kalau tanda pembandingnya salah, kita hanya mengubah
+            satu baris, bukan empat baris yang bisa jadi tidak konsisten.</span
+          >
+        </li>
+        <li>
+          <span class="qtext"
+            >Kapan programmu salah menghitung? Tuliskan satu kondisi dan idemu
+            memperbaikinya.</span
+          >
+          <span class="ans"
+            >Program salah menghitung saat tangan diputar menyamping (jari
+            mengarah ke kiri atau ke kanan, bukan ke atas). Pada posisi itu,
+            “terbuka” tidak lagi berarti <code>tip.y</code> lebih kecil dari
+            <code>pip.y</code>, sehingga telapak yang terbuka penuh bisa terbaca
+            rendah atau bahkan 0. Kondisi lain: ibu jari yang hanya terbuka
+            sebagian kadang ikut terhitung saat tangan mengepal, dan dua tangan
+            yang saling menutupi membuat jumlah tangan terbaca berubah-ubah.
+            <br /><b>Ide perbaikan:</b> hitung sudut tekukan pada sendi PIP
+            memakai vektor MCP→PIP dan PIP→TIP, lalu anggap jari terbuka bila
+            sudutnya di atas sekitar 160°. Cara ini tidak bergantung pada arah
+            tangan. Sebagai alternatif, tentukan sumbu “atas” tangan dari vektor
+            pergelangan (titik 0) ke pangkal jari tengah (titik 9), lalu
+            proyeksikan jarak ujung jari ke sumbu tersebut — sehingga
+            perhitungannya ikut berputar bersama tangan.</span
+          >
+        </li>
+      </ol>
+
+      <h2><span class="n">09</span> — Ringkasan Pencapaian</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th class="c" style="width: 18%">Status</th>
+            <th style="width: 30%">Bukti</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Langkah 1–4: kamera dan video tampil</td>
+            <td class="c ok">SELESAI</td>
+            <td>
+              Model termuat, canvas 1280×720, FPS bergerak, indikator memuat
+              hilang.
+            </td>
+          </tr>
+          <tr>
+            <td>Langkah 5–8: kerangka tangan dan label kiri/kanan</td>
+            <td class="c ok">SELESAI</td>
+            <td>
+              <code>drawConnectors</code> + <code>drawLandmarks</code> aktif,
+              label “Tangan: Kanan, Kiri” benar.
+            </td>
+          </tr>
+          <tr>
+            <td>Langkah 9: empat jari dengan <code>for</code> benar</td>
+            <td class="c ok">SELESAI</td>
+            <td>Hasil 0, 1, 2, 3 sesuai gerakan.</td>
+          </tr>
+          <tr>
+            <td>Langkah 10: ibu jari benar</td>
+            <td class="c ok">SELESAI</td>
+            <td>Terhitung saat telapak terbuka (5), tidak saat mengepal (0).</td>
+          </tr>
+          <tr>
+            <td>Langkah 11–12: tampilan hasil dan tombol kamera</td>
+            <td class="c ok">SELESAI</td>
+            <td>
+              Angka besar &amp; lampu jari berubah; tombol berganti
+              “Nyalakan/Matikan Kamera”.
+            </td>
+          </tr>
+          <tr>
+            <td>Tabel uji coba lengkap</td>
+            <td class="c ok">SELESAI</td>
+            <td>Bagian 07 di atas.</td>
+          </tr>
+          <tr>
+            <td>Kode rapi, indentasi konsisten, ada komentar</td>
+            <td class="c ok">SELESAI</td>
+            <td>
+              Setiap langkah diberi penanda <code>// LANGKAH 1</code> … <code>// LANGKAH 12</code>.
+            </td>
+          </tr>
+          <tr>
+            <td>Refleksi</td>
+            <td class="c ok">SELESAI</td>
+            <td>Bagian 08 di atas.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,465 @@
+:root {
+    /* 3 Warna Utama: Abu Gelap Hangat, Krem Tulang, Oranye Bata */
+    --c-bg: #151413;
+    --c-fg: #eae5dc;
+    --c-accent: #d84e2a;
+
+    /* Derivasi fungsional untuk hierarki struktural */
+    --c-surface: #1e1d1a;
+    --c-surface-dim: #191816;
+    --c-border: #35322d;
+    --c-border-light: #48443d;
+    --c-muted: #8b867c;
+    --font-display: 'Bricolage Grotesque', -apple-system, sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--c-bg);
+    color: var(--c-fg);
+    font-family: var(--font-mono);
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+    padding: 24px;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Container Utama */
+.app-wrapper {
+    max-width: 1240px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Header Instrumen Rata Kiri */
+.app-header {
+    border-bottom: 1px solid var(--c-border);
+    padding-bottom: 16px;
+}
+
+.sys-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--c-muted);
+    margin-bottom: 8px;
+}
+
+.sys-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--c-accent);
+    font-weight: 600;
+}
+
+.sys-status::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    background-color: var(--c-accent);
+}
+
+.app-title {
+    font-family: var(--font-display);
+    font-size: 2.1rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    color: var(--c-fg);
+    margin-bottom: 4px;
+}
+
+.app-desc {
+    color: var(--c-muted);
+    font-size: 0.85rem;
+    max-width: 680px;
+}
+
+/* Grid Layout Asimetris */
+.instrument-grid {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 20px;
+    align-items: start;
+}
+
+@media (max-width: 960px) {
+    body {
+        padding: 16px;
+    }
+
+    .instrument-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Panel Wrapper */
+.instrument-panel {
+    background: var(--c-surface);
+    border: 1px solid var(--c-border);
+}
+
+.panel-tag {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: var(--c-surface-dim);
+    border-bottom: 1px solid var(--c-border);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    color: var(--c-muted);
+    text-transform: uppercase;
+}
+
+.panel-tag .tag-index {
+    color: var(--c-accent);
+    font-weight: 700;
+}
+
+/* Viewport Area */
+.viewport-card {
+    position: relative;
+    background: #0d0d0c;
+    aspect-ratio: 16 / 9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+video.input-video {
+    display: none;
+}
+
+canvas.output-canvas {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scaleX(-1);
+    display: block;
+}
+
+/* HUD Kamera / Alat Ukur */
+.status-overlay {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px;
+    background: rgba(21, 20, 19, 0.9);
+    border: 1px solid var(--c-border);
+    font-size: 0.72rem;
+    font-family: var(--font-mono);
+    letter-spacing: 0.04em;
+    color: var(--c-fg);
+}
+
+.hud-sep {
+    color: var(--c-border-light);
+}
+
+.hud-item span {
+    color: var(--c-fg);
+    font-weight: 600;
+}
+
+.hud-rec {
+    color: var(--c-accent);
+    font-weight: 600;
+}
+
+/* Reticle Garis Sudut / Tanda Bidik */
+.corner-reticle {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    pointer-events: none;
+    border-color: rgba(234, 229, 220, 0.35);
+    border-style: solid;
+    z-index: 5;
+}
+
+.corner-reticle.top-left {
+    top: 12px;
+    left: 12px;
+    border-width: 1px 0 0 1px;
+}
+
+.corner-reticle.top-right {
+    top: 12px;
+    right: 12px;
+    border-width: 1px 1px 0 0;
+}
+
+.corner-reticle.bottom-left {
+    bottom: 12px;
+    left: 12px;
+    border-width: 0 0 1px 1px;
+}
+
+.corner-reticle.bottom-right {
+    bottom: 12px;
+    right: 12px;
+    border-width: 0 1px 1px 0;
+}
+
+/* Status Bar di Bawah Viewport */
+.viewport-footer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--c-surface-dim);
+    border-top: 1px solid var(--c-border);
+    font-size: 0.68rem;
+    color: var(--c-muted);
+    letter-spacing: 0.05em;
+}
+
+/* Sidebar Telemetri */
+.panel-sidebar {
+    display: flex;
+    flex-direction: column;
+}
+
+.telemetry-section {
+    padding: 16px;
+    border-bottom: 1px solid var(--c-border);
+}
+
+.telemetry-section:last-child {
+    border-bottom: none;
+}
+
+.section-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--c-muted);
+    margin-bottom: 12px;
+}
+
+.unit-tag {
+    color: var(--c-accent);
+    font-weight: 600;
+}
+
+/* Counter Pembacaan Besar */
+.counter-box {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    padding: 8px 0;
+}
+
+.counter-number {
+    font-family: var(--font-mono);
+    font-size: 4.8rem;
+    font-weight: 700;
+    line-height: 0.9;
+    color: var(--c-fg);
+    letter-spacing: -0.05em;
+    min-width: 60px;
+}
+
+.counter-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.counter-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--c-fg);
+}
+
+.counter-range {
+    font-size: 0.68rem;
+    color: var(--c-muted);
+    letter-spacing: 0.05em;
+}
+
+/* Status Tiap Jari: Baris Tabel */
+.finger-table {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--c-border);
+    background: var(--c-surface-dim);
+}
+
+.finger-item {
+    display: grid;
+    grid-template-columns: 24px 1fr 60px 10px;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border-bottom: 1px solid var(--c-border);
+    font-size: 0.78rem;
+    transition: background-color 0.1s ease;
+}
+
+.finger-item:last-child {
+    border-bottom: none;
+}
+
+.f-num {
+    color: var(--c-muted);
+    font-size: 0.68rem;
+}
+
+.f-name {
+    color: var(--c-fg);
+}
+
+.f-state {
+    text-align: right;
+    font-size: 0.7rem;
+    letter-spacing: 0.05em;
+    color: var(--c-muted);
+}
+
+.finger-item .f-state::before {
+    content: 'OFF';
+}
+
+.finger-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--c-border-light);
+}
+
+/* State Aktif Jari */
+.finger-item.active {
+    background: rgba(216, 78, 42, 0.14);
+}
+
+.finger-item.active .f-name {
+    color: var(--c-fg);
+    font-weight: 600;
+}
+
+.finger-item.active .f-state {
+    color: var(--c-accent);
+    font-weight: 700;
+}
+
+.finger-item.active .f-state::before {
+    content: 'AKTIF';
+}
+
+.finger-item.active .finger-dot {
+    background: var(--c-accent);
+}
+
+/* Tombol Utilitarian */
+.control-section {
+    background: var(--c-surface-dim);
+}
+
+.btn-group {
+    margin-top: 4px;
+}
+
+button {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 10px 14px;
+    border-radius: 0;
+    cursor: pointer;
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+button:focus-visible {
+    outline: 2px solid var(--c-accent);
+    outline-offset: 2px;
+}
+
+.btn-primary {
+    background: var(--c-accent);
+    color: #ffffff;
+    border: 1px solid var(--c-accent);
+}
+
+.btn-primary:hover {
+    background: #bf3f1d;
+    border-color: #bf3f1d;
+}
+
+.btn-secondary {
+    background: transparent;
+    color: var(--c-fg);
+    border: 1px solid var(--c-border-light);
+}
+
+.btn-secondary:hover {
+    background: rgba(234, 229, 220, 0.08);
+    border-color: var(--c-fg);
+}
+
+.control-note {
+    margin-top: 10px;
+    font-size: 0.68rem;
+    color: var(--c-muted);
+    line-height: 1.4;
+}
+
+/* Indikator Memuat */
+#loading-indicator {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    color: var(--c-muted);
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+    text-align: center;
+    padding: 16px;
+    z-index: 20;
+}
+
+.spinner {
+    width: 28px;
+    height: 28px;
+    border: 2px solid var(--c-border);
+    border-top-color: var(--c-accent);
+    border-radius: 0;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

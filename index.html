@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Deteksi Jari — MediaPipe Hands</title>
+
+    <!-- Ikon halaman (inline) agar Console bersih tanpa error 404 favicon -->
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23151413'/%3E%3Crect x='7' y='7' width='18' height='18' fill='%23d84e2a'/%3E%3C/svg%3E"
+    />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- MediaPipe Libraries via CDN -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"
+      crossorigin="anonymous"
+    ></script>
+
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <div class="app-wrapper">
+      <header class="app-header">
+        <div class="sys-meta">
+          <span>INST-04 // TELEMETRI OPTIK</span>
+          <span>MEDIAPIPE HANDS · V0.3.2</span>
+          <span class="sys-status">SYS_ONLINE</span>
+        </div>
+        <h1 class="app-title">Deteksi Posisi Jari</h1>
+        <p class="app-desc">
+          Sistem deteksi koordinat tangan dan kalkulasi ekstensi jari via sensor
+          optik.
+        </p>
+      </header>
+
+      <main class="instrument-grid">
+        <!-- Area Video & Canvas -->
+        <section class="instrument-panel panel-viewport">
+          <div class="panel-tag">
+            <span
+              ><span class="tag-index">01</span> // MODUL AKUISISI OPTIK</span
+            >
+            <span>KANAL: CAM_01</span>
+          </div>
+
+          <div class="viewport-card">
+            <!-- Monospace HUD Overlay -->
+            <div class="status-overlay">
+              <span class="hud-item">FPS <span id="fps-counter">0</span></span>
+              <span class="hud-sep">/</span>
+              <span class="hud-item"
+                >TANGAN <span id="hands-count">0</span></span
+              >
+              <span class="hud-sep">/</span>
+              <span class="hud-item hud-rec">● LIVE</span>
+            </div>
+
+            <!-- Tanda Bidik / Registration Marks -->
+            <div class="corner-reticle top-left"></div>
+            <div class="corner-reticle top-right"></div>
+            <div class="corner-reticle bottom-left"></div>
+            <div class="corner-reticle bottom-right"></div>
+
+            <div id="loading-indicator">
+              <div class="spinner"></div>
+              <span>MEMUAT BOBOT MODEL MEDIAPIPE...</span>
+            </div>
+
+            <video id="webcam" class="input-video" playsinline></video>
+            <canvas id="output-canvas" class="output-canvas"></canvas>
+          </div>
+
+          <div class="viewport-footer">
+            <span>RESOLUSI BUFFER: 1280×720</span>
+            <span>PERSPEKTIF: SCALE-X(-1)</span>
+            <span>AMBANG DETEKSI: 0.65</span>
+          </div>
+        </section>
+
+        <!-- Panel Telemetri & Kontrol -->
+        <aside class="instrument-panel panel-sidebar">
+          <div class="panel-tag">
+            <span
+              ><span class="tag-index">02</span> // PEMBACAAN TELEMETRI</span
+            >
+            <span>POLL: 16MS</span>
+          </div>
+
+          <!-- Bagian Pembacaan Angka Jari -->
+          <div class="telemetry-section">
+            <div class="section-label">
+              <span>02.1 JUMLAH JARI TERBUKA</span>
+              <span class="unit-tag">[DIGIT]</span>
+            </div>
+            <div class="counter-box">
+              <div class="counter-number" id="finger-total">0</div>
+              <div class="counter-info">
+                <div class="counter-label" id="hand-label-info">
+                  Belum ada tangan terdeteksi
+                </div>
+                <div class="counter-range">RENTANG NOMINAL: 0 — 10</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bagian Status Masing-masing Jari -->
+          <div class="telemetry-section">
+            <div class="section-label">
+              <span>02.2 STATUS EKSTENSI INDIVIDU</span>
+              <span class="unit-tag">[BINER]</span>
+            </div>
+            <div class="finger-table">
+              <div class="finger-item" id="finger-thumb">
+                <span class="f-num">01</span>
+                <span class="f-name">Ibu Jari</span>
+                <span class="f-state"></span>
+                <div class="finger-dot"></div>
+              </div>
+              <div class="finger-item" id="finger-index">
+                <span class="f-num">02</span>
+                <span class="f-name">Jari Telunjuk</span>
+                <span class="f-state"></span>
+                <div class="finger-dot"></div>
+              </div>
+              <div class="finger-item" id="finger-middle">
+                <span class="f-num">03</span>
+                <span class="f-name">Jari Tengah</span>
+                <span class="f-state"></span>
+                <div class="finger-dot"></div>
+              </div>
+              <div class="finger-item" id="finger-ring">
+                <span class="f-num">04</span>
+                <span class="f-name">Jari Manis</span>
+                <span class="f-state"></span>
+                <div class="finger-dot"></div>
+              </div>
+              <div class="finger-item" id="finger-pinky">
+                <span class="f-num">05</span>
+                <span class="f-name">Jari Kelingking</span>
+                <span class="f-state"></span>
+                <div class="finger-dot"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bagian Kontrol Hardware -->
+          <div class="telemetry-section control-section">
+            <div class="section-label">
+              <span>02.3 KONTROL INSTRUMEN</span>
+            </div>
+            <div class="btn-group">
+              <button class="btn-primary" id="btn-toggle-cam">
+                Matikan Kamera
+              </button>
+            </div>
+            <p class="control-note">
+              Memutus stream sensor webcam lokal tanpa menghentikan worker
+              inference.
+            </p>
+          </div>
+        </aside>
+      </main>
+    </div>
+
+    <script>
+      // ==============================================================
+      // LANGKAH 1 — Menghubungkan elemen HTML
+      // document.getElementById mengambil elemen berdasarkan id.
+      // ==============================================================
+      const videoElement = document.getElementById("webcam");
+      const canvasElement = document.getElementById("output-canvas");
+      const canvasCtx = canvasElement.getContext("2d");
+      const loadingIndicator = document.getElementById("loading-indicator");
+      const fpsCounter = document.getElementById("fps-counter");
+      const handsCountEl = document.getElementById("hands-count");
+      const fingerTotalEl = document.getElementById("finger-total");
+      const handLabelInfo = document.getElementById("hand-label-info");
+      const btnToggleCam = document.getElementById("btn-toggle-cam");
+      const fingerElements = {
+        thumb: document.getElementById("finger-thumb"),
+        index: document.getElementById("finger-index"),
+        middle: document.getElementById("finger-middle"),
+        ring: document.getElementById("finger-ring"),
+        pinky: document.getElementById("finger-pinky"),
+      };
+
+      // ==============================================================
+      // LANGKAH 2 — Variabel status dan daftar jari
+      // Tiga array sejajar: indeks ke-0 telunjuk, ke-1 tengah, dst.
+      // ==============================================================
+      let camera = null;
+      let isCameraRunning = true;
+      let lastFrameTime = performance.now();
+      let frameCount = 0;
+      let fps = 0;
+      // Landmark ID untuk ujung jari dan sendi referensi
+      const FINGER_TIPS = [8, 12, 16, 20];
+      const FINGER_PIPS = [6, 10, 14, 18];
+      const FINGER_KEYS = ["index", "middle", "ring", "pinky"];
+
+      // ==============================================================
+      // LANGKAH 3 — Fungsi onResults: kerangka dasar
+      // Dipanggil MediaPipe setiap selesai memproses satu frame.
+      // ==============================================================
+      function onResults(results) {
+        // Sembunyikan loading jika pertama kali berhasil
+        if (loadingIndicator.style.display !== "none") {
+          loadingIndicator.style.display = "none";
+        }
+        // Hitung FPS
+        frameCount++;
+        const now = performance.now();
+        if (now - lastFrameTime >= 1000) {
+          fps = Math.round((frameCount * 1000) / (now - lastFrameTime));
+          fpsCounter.textContent = fps;
+          frameCount = 0;
+          lastFrameTime = now;
+        }
+        // Sesuaikan ukuran canvas dengan frame video
+        canvasElement.width = videoElement.videoWidth || 640;
+        canvasElement.height = videoElement.videoHeight || 480;
+        canvasCtx.save();
+        canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+        canvasCtx.drawImage(
+          results.image,
+          0,
+          0,
+          canvasElement.width,
+          canvasElement.height,
+        );
+
+        // ==========================================================
+        // LANGKAH 5 — Menyiapkan penampung hasil
+        // Setiap frame dimulai dari nol.
+        // ==========================================================
+        let totalFingers = 0;
+        let handNames = [];
+        const activeFingers = {
+          thumb: false,
+          index: false,
+          middle: false,
+          ring: false,
+          pinky: false,
+        };
+
+        // ==========================================================
+        // LANGKAH 6 — Kerangka perulangan tangan
+        // landmarks adalah 21 titik milik tangan ke-i.
+        // ==========================================================
+        if (
+          results.multiHandLandmarks &&
+          results.multiHandLandmarks.length > 0
+        ) {
+          handsCountEl.textContent = results.multiHandLandmarks.length;
+          for (let i = 0; i < results.multiHandLandmarks.length; i++) {
+            const landmarks = results.multiHandLandmarks[i];
+            const handedness = results.multiHandedness[i];
+
+            // ======================================================
+            // LANGKAH 7 — Menggambar kerangka tangan
+            // ======================================================
+            // Gambar tulang tangan dan sendi dengan gaya diagram teknis
+            drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {
+              color: "#d84e2a", // oranye bata tegas
+              lineWidth: 2,
+            });
+            drawLandmarks(canvasCtx, landmarks, {
+              color: "#151413",
+              fillColor: "#eae5dc",
+              lineWidth: 1.5,
+              radius: 3.5,
+            });
+
+            // ======================================================
+            // LANGKAH 8 — Mengenali tangan kiri atau kanan
+            // ======================================================
+            // Handedness: 'Left' atau 'Right' dari perspektif model
+            // Karena canvas di-scaleX(-1), orientasi disesuaikan
+            const label = handedness ? handedness.label : "Hand";
+            const isRight = label === "Left"; // reversed due to mirror view
+            handNames.push(isRight ? "Kanan" : "Kiri");
+
+            // ======================================================
+            // LANGKAH 9 — Deteksi 4 jari
+            // Jari terbuka bila ujung lebih tinggi dari sendi PIP
+            // (y ujung lebih kecil, karena y dihitung dari atas).
+            // ======================================================
+            // 2. Deteksi 4 Jari Lainnya (Tip.y < Pip.y = jari terangkat)
+            for (let f = 0; f < 4; f++) {
+              const tipId = FINGER_TIPS[f];
+              const pipId = FINGER_PIPS[f];
+              const key = FINGER_KEYS[f];
+              if (landmarks[tipId].y < landmarks[pipId].y) {
+                activeFingers[key] = true;
+                totalFingers++;
+              }
+            }
+
+            // ======================================================
+            // LANGKAH 10 — Deteksi ibu jari (tantangan)
+            // Ibu jari bergerak ke samping (sumbu x), arahnya
+            // berlawanan untuk tangan kiri dan kanan.
+            // 10a jarak ke titik 17 · 10b hOpen · 10c vOpen · 10d gabung
+            // ======================================================
+            // 1. Deteksi Ibu Jari (Thumb)
+            // dTipPinky > dIpPinky memastikan jempol tidak menekuk ke dalam telapak/mengepal
+            const dTipPinky = Math.hypot(
+              landmarks[4].x - landmarks[17].x,
+              landmarks[4].y - landmarks[17].y,
+            );
+            const dIpPinky = Math.hypot(
+              landmarks[3].x - landmarks[17].x,
+              landmarks[3].y - landmarks[17].y,
+            );
+            const hOpen = isRight
+              ? landmarks[4].x < landmarks[3].x
+              : landmarks[4].x > landmarks[3].x;
+            const vOpen =
+              landmarks[4].y < landmarks[3].y &&
+              landmarks[3].y < landmarks[2].y;
+            const thumbOpen = dTipPinky > dIpPinky && (hOpen || vOpen);
+            if (thumbOpen) {
+              activeFingers.thumb = true;
+              totalFingers++;
+            }
+          }
+          handLabelInfo.textContent = `Tangan: ${handNames.join(", ")}`;
+        } else {
+          handsCountEl.textContent = "0";
+          handLabelInfo.textContent = "Belum ada tangan terdeteksi";
+        }
+
+        // ==========================================================
+        // LANGKAH 11 — Menampilkan hasil ke layar
+        // Kelas CSS "active" menyalakan lampu tiap jari.
+        // ==========================================================
+        // Update UI Tampilan Angka dan Status Jari
+        fingerTotalEl.textContent = totalFingers;
+        for (const [key, el] of Object.entries(fingerElements)) {
+          if (activeFingers[key]) {
+            el.classList.add("active");
+          } else {
+            el.classList.remove("active");
+          }
+        }
+
+        canvasCtx.restore();
+      }
+
+      // ==============================================================
+      // LANGKAH 4 — Menjalankan MediaPipe dan kamera
+      // hands.onResults(onResults) mendaftarkan fungsi kita sebagai callback.
+      // ==============================================================
+      // Inisialisasi MediaPipe Hands
+      const hands = new Hands({
+        locateFile: (file) =>
+          `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,
+      });
+      hands.setOptions({
+        maxNumHands: 2,
+        modelComplexity: 1,
+        minDetectionConfidence: 0.65,
+        minTrackingConfidence: 0.65,
+      });
+      hands.onResults(onResults);
+      // Inisialisasi Kamera
+      camera = new Camera(videoElement, {
+        onFrame: async () => {
+          if (isCameraRunning) {
+            await hands.send({ image: videoElement });
+          }
+        },
+        width: 1280,
+        height: 720,
+      });
+      camera.start().catch((err) => {
+        console.error("Kamera error:", err);
+        loadingIndicator.innerHTML =
+          '<span style="color:#d84e2a;">Gagal mengakses kamera. Izinkan akses webcam di browser Anda.</span>';
+      });
+
+      // ==============================================================
+      // LANGKAH 12 — Tombol nyala/mati kamera
+      // addEventListener('click', ...) menjalankan kode setiap diklik.
+      // ==============================================================
+      // Kontrol Tombol On/Off Kamera
+      btnToggleCam.addEventListener("click", () => {
+        if (isCameraRunning) {
+          camera.stop();
+          isCameraRunning = false;
+          btnToggleCam.textContent = "Nyalakan Kamera";
+          btnToggleCam.className = "btn-secondary";
+          handLabelInfo.textContent = "Kamera Dimatikan";
+        } else {
+          camera.start();
+          isCameraRunning = true;
+          btnToggleCam.textContent = "Matikan Kamera";
+          btnToggleCam.className = "btn-primary";
+          handLabelInfo.textContent = "Mendeteksi...";
+        }
+      });
+    </script>
+  </body>
+</html>
